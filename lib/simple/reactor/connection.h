@@ -16,7 +16,6 @@ class connection: public event::io {
         CONNECTING,
         CONNECTED,
     };
-    
 
     public:
         connection(socket *socket): state_(DISCONNECTED), socket_(socket) {
@@ -24,32 +23,6 @@ class connection: public event::io {
         }
         ~connection() {
             delete socket_;
-        }
-
-    public:
-        packet::writer get_packet_writer() {
-            return packet::writer(socket_->send_buff_);
-        }
-
-    public:
-
-        void connected() {
-            if (state_ != CONNECTED) {
-                state_ = CONNECTED;
-                on_connected();
-                socket_->open();
-            }
-        }
-
-        void connecting() {
-            state_ = CONNECTING;
-        }
-
-        void disconnect() {
-            if (state_ == DISCONNECTED)
-                return;
-            socket_->close();
-            on_disconnected();
         }
 
     public:
@@ -63,6 +36,29 @@ class connection: public event::io {
             return state_ == DISCONNECTED;
         }
 
+    public:
+        void connected() {
+            if (state_ != CONNECTED) {
+                state_ = CONNECTED;
+                on_connected();
+                socket_->open();
+            }
+        }
+        void connecting() {
+            state_ = CONNECTING;
+        }
+        void disconnect() {
+            if (state_ == DISCONNECTED)
+                return;
+            state_ = DISCONNECTED;
+            socket_->close();
+            on_disconnected();
+        }
+
+    public:
+        packet::writer get_packet_writer() {
+            return packet::writer(socket_->send_buff_);
+        }
 
     public:
         void send(packet::reader& packet) {

@@ -22,12 +22,12 @@ class connector: public asio::reactor::udp::connector, public asio::reactor::tim
             //std::cout << __PRETTY_FUNCTION__ << std::endl;
         } 
         void on_connected() {
-            //std::cout << __PRETTY_FUNCTION__ << std::endl; //asio::reactor::timer::relay(1.f, true);
-            asio::reactor::timer::relay(1.f, true);
+            std::cout << __PRETTY_FUNCTION__ << std::endl; //asio::reactor::timer::relay(1.f, true);
+            asio::reactor::timer::relay(0.01f, true);
         }
         void on_disconnected() {
-            //std::cout << __PRETTY_FUNCTION__ << std::endl;
-            asio::reactor::timer::relay(1.f, true);
+            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            asio::reactor::timer::relay(0.01f, true);
         }
         void on_time() {
             //std::cout << __PRETTY_FUNCTION__ << std::endl;

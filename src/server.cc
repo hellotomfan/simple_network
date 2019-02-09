@@ -17,7 +17,7 @@ class connection: public simple::reactor::connection, public asio::reactor::time
 
     public:
         void on_connected() {
-            asio::reactor::timer::relay(1.f, true);
+            asio::reactor::timer::relay(0.01f, true);
         }
     private:
         void on_recv(simple::reactor::packet::reader& packet) {
