@@ -18,6 +18,7 @@ class socket: public simple::reactor::socket {
         }
     public:
         void open() {
+            socket_.non_blocking(true);
             do_read();
             do_write();
         }

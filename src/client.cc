@@ -13,9 +13,9 @@
 #include <iostream>
 #include <string.h>
 
-class connector: public asio::reactor::udp::connector, public asio::reactor::timer  {
+class connector: public asio::reactor::tcp::connector, public asio::reactor::timer  {
     public:
-        connector(simple::reactor::mgr* mgr): asio::reactor::udp::connector(mgr), asio::reactor::timer(mgr) {
+        connector(simple::reactor::mgr* mgr): asio::reactor::tcp::connector(mgr), asio::reactor::timer(mgr) {
         }
     private:
         void on_recv(simple::reactor::packet::reader& packet) {
@@ -37,7 +37,7 @@ class connector: public asio::reactor::udp::connector, public asio::reactor::tim
             else if (is_connected()) {
                 auto packet = get_packet_writer();
                 packet << i++;
-                asio::reactor::udp::connector::send(packet);
+                asio::reactor::tcp::connector::send(packet);
             }
         }
 

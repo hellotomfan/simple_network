@@ -34,6 +34,7 @@ class socket: public simple::reactor::socket {
             recv_buff_.reset();
             send_buff_.reset();
             socket_.close();
+            io_->on_close();
         }
 
     public:
@@ -41,7 +42,7 @@ class socket: public simple::reactor::socket {
             auto self(io_->shared_from_this());
             socket_.async_wait(asio::ip::tcp::socket::wait_read, [this, self](std::error_code ec) {
                 if (ec) {
-                    io_->on_close();
+                    close();
                     return;
                 }
                 while (uint32 size = recv_buff_.get_continguious_space()) {
@@ -52,7 +53,7 @@ class socket: public simple::reactor::socket {
                     } 
                     if (ec) {
                         if (ec != asio::error::would_block) {
-                            io_->on_close();
+                            close();
                             return;
                         }
                         break;
@@ -69,7 +70,7 @@ class socket: public simple::reactor::socket {
                     auto self(io_->shared_from_this());
                     socket_.async_wait(asio::ip::tcp::socket::wait_write, [this, self](std::error_code ec) {
                         if (ec) {
-                            io_->on_close();
+                            close();
                             return;
                         }
                         do {
@@ -79,7 +80,7 @@ class socket: public simple::reactor::socket {
                             } 
                             if (ec) {
                                 if (ec != asio::error::would_block) {
-                                    io_->on_close();
+                                    close();
                                     return;
                                 }
                                 break;

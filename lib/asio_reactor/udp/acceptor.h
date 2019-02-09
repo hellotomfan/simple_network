@@ -61,7 +61,6 @@ class acceptor: public simple::reactor::mgr::acceptor {
                     if (!is_accepted(remote_endpoint_)) {
                         asio::ip::udp::socket socket(get_mgr()->io_service_);
                         socket.open(asio::ip::udp::v4());
-                        socket.non_blocking(true);
                         socket.set_option(asio::ip::udp::socket::reuse_address(true));
                         socket.bind(endpoint_);
                         socket.connect(remote_endpoint_, ec);

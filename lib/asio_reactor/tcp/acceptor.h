@@ -37,8 +37,8 @@ class acceptor: public simple::reactor::mgr::acceptor {
             acceptor_.async_accept(socket_,
                 [this, self](std::error_code ec) {
                 if (!ec) {
-                    auto socket = new tcp::socket(socket_);
-                    on_connected(socket);
+                    socket_.non_blocking(true);
+                    on_connected(new tcp::socket(socket_));
                 }
                 do_accept();
             });
