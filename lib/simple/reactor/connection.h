@@ -53,6 +53,18 @@ class connection: public event::io {
         }
 
     public:
+        bool is_connected() {
+            return state_ == CONNECTED;
+        }
+        bool is_connecting() {
+            return state_ == CONNECTING;
+        }
+        bool is_disconnected() {
+            return state_ == DISCONNECTED;
+        }
+
+
+    public:
         void send(packet::reader& packet) {
             auto out_packet = packet::writer(socket_->send_buff_);
             out_packet << packet;

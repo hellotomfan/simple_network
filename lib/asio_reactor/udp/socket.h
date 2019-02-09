@@ -1,6 +1,7 @@
 #ifndef LIB_ASIO_REACTOR_UDP_SOCKET_H
 #define LIB_ASIO_REACTOR_UDP_SOCKET_H
 
+//#include "acceptor.h"
 
 #include "../../simple/reactor/socket.h"
 
@@ -13,23 +14,30 @@ class socket: public simple::reactor::socket {
     public:
         socket(asio::io_service& io_service): socket_(io_service) {
         }
-        socket(asio::ip::udp::socket& socket): socket_(std::move(socket)) {
+        socket(asio::ip::udp::socket& socket, const std::shared_ptr<asio::ip::udp::endpoint>& endpoint): socket_(std::move(socket)), endpoint_(endpoint) {
+        }
+        ~socket() {
+            std::cout << __PRETTY_FUNCTION__ << std::endl;
         }
 
     public:
         void open() {
-            socket_.non_blocking(true);
             do_read();
             do_write();
         }
+
+        void close() {
+            socket_.close();
+            io_->on_close();
+        }
+
         void do_read() {
             auto self(io_->shared_from_this());
             size_t space = recv_buff_.get_continguious_space();
             socket_.async_receive(asio::buffer(recv_buff_.get_end(), space), [this, self](std::error_code ec, size_t count) {
                 if (ec) {
-                    io_->on_close();
+                    close();
                 } else {
-                    std::cout << socket_.native_handle() << __PRETTY_FUNCTION__ << count << std::endl;
                     recv_buff_.written(count);
                     io_->on_read();
                     recv_buff_.reset();
@@ -53,7 +61,7 @@ class socket: public simple::reactor::socket {
                     socket_.send(asio::buffer(buff, count), 0, ec);
                 }
                 if (ec) {
-                    io_->on_close();
+                    close();
                 }
                 send_buff_.reset();
             }
@@ -61,6 +69,9 @@ class socket: public simple::reactor::socket {
 
     private:
         asio::ip::udp::socket socket_;
+
+    private:
+        std::shared_ptr<asio::ip::udp::endpoint> endpoint_;
 
 };
 

@@ -2,10 +2,12 @@
 #define LIB_ASIO_REACTOR_UDP_ACCEPTOR_H
 
 
-#include "socket.h"
 #include "../mgr.h"
+#include "socket.h"
 
 #include <asio.hpp>
+
+#include <unordered_map>
 
 
 namespace asio::reactor::udp {
@@ -15,6 +17,9 @@ class acceptor: public simple::reactor::mgr::acceptor {
         acceptor(simple::reactor::mgr *m): 
             simple::reactor::mgr::acceptor(m),
             socket_(static_cast<mgr*>(m)->io_service_) {
+        }
+        ~acceptor() {
+            std::cout << __PRETTY_FUNCTION__ << std::endl;
         }
 
     public:
@@ -31,18 +36,46 @@ class acceptor: public simple::reactor::mgr::acceptor {
            return static_cast<mgr*>(m_);
         }
 
+    public:
+        bool is_accepted(const asio::ip::udp::endpoint& remote_endpoint) {
+            for (auto it = remote_endpoints_.begin(); it != remote_endpoints_.end(); ++it) {
+                if (**it == remote_endpoint) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+    public:
+        void close(const asio::ip::udp::endpoint& remote_endpoint) {
+            for (auto it = remote_endpoints_.begin(); it != remote_endpoints_.end(); ++it) {
+                if (**it == remote_endpoint) {
+                    remote_endpoints_.erase(it);
+                    return;
+                }
+            }
+        }
+
     private:
         void do_accept() {
             auto self = this->shared_from_this();
             socket_.async_receive_from(asio::buffer(buffer_, sizeof(buffer_)), remote_endpoint_, [this, self](std::error_code ec, size_t n) {
                 if (!ec) {
-                    asio::ip::udp::socket socket(get_mgr()->io_service_);
-                    socket.open(asio::ip::udp::v4());
-                    socket.set_option(asio::ip::udp::socket::reuse_address(true));
-                    socket.bind(endpoint_);
-                    socket.connect(remote_endpoint_, ec);
-                    if (!ec) {
-                        on_connected(new udp::socket(socket));
+                    if (!is_accepted(remote_endpoint_)) {
+                        asio::ip::udp::socket socket(get_mgr()->io_service_);
+                        socket.open(asio::ip::udp::v4());
+                        socket.non_blocking(true);
+                        socket.set_option(asio::ip::udp::socket::reuse_address(true));
+                        socket.bind(endpoint_);
+                        socket.connect(remote_endpoint_, ec);
+                        if (!ec) {
+                            std::shared_ptr<asio::ip::udp::endpoint> remote_endpoint(new asio::ip::udp::endpoint(remote_endpoint_), [this, self](asio::ip::udp::endpoint* endpoint) {
+                                close(*endpoint);
+                                delete endpoint;
+                            });
+                            remote_endpoints_.push_back(remote_endpoint.get());
+                            on_connected(new udp::socket(socket, remote_endpoint));
+                        }
                     }
                 }
                 do_accept();
@@ -57,9 +90,11 @@ class acceptor: public simple::reactor::mgr::acceptor {
         asio::ip::udp::endpoint remote_endpoint_;
 
     private:
+        std::vector<asio::ip::udp::endpoint*> remote_endpoints_;
+
+    private:
         asio::ip::udp::socket socket_;
 };
-
 }
 
 #endif

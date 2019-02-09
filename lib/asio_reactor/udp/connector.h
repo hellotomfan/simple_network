@@ -34,6 +34,7 @@ class connector: public simple::reactor::mgr::connector {
             auto self = shared_from_this();
 
             get_socket()->socket_.open(asio::ip::udp::v4());
+            get_socket()->socket_.non_blocking(true);
             get_socket()->socket_.set_option(asio::ip::udp::socket::reuse_address(true));
             get_socket()->socket_.bind(asio::ip::udp::endpoint());
 
@@ -43,8 +44,11 @@ class connector: public simple::reactor::mgr::connector {
                     disconnect();
                 else {
                     char c = 0;
-                    get_socket()->socket_.send(asio::buffer(&c, sizeof(c)));
-                    connected();
+                    get_socket()->socket_.send(asio::buffer(&c, sizeof(c)), 0, ec);
+                    if (!ec)
+                        connected();
+                    else
+                        disconnect();
                 }
             });
         }

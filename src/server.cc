@@ -10,9 +10,14 @@
 #include <iostream>
 #include <set>
 
-class connection: public simple::reactor::connection {
+class connection: public simple::reactor::connection, public asio::reactor::timer {
     public:
-        connection(simple::reactor::socket* socket): simple::reactor::connection(socket) {
+        connection(simple::reactor::socket* socket, simple::reactor::mgr *mgr): simple::reactor::connection(socket), asio::reactor::timer(mgr) {
+        }
+
+    public:
+        void on_connected() {
+            asio::reactor::timer::relay(1.f, true);
         }
     private:
         void on_recv(simple::reactor::packet::reader& packet) {
@@ -23,43 +28,14 @@ class connection: public simple::reactor::connection {
             out_packet << i;
             send(out_packet);
         }
-};
 
-
-/*
-class acceptor: public asio::reactor::tcp::acceptor {
-    public:
-        acceptor(simple::reactor::mgr *mgr): asio::reactor::tcp::acceptor(mgr) {
-        }
-    private:
-        void on_connected(simple::reactor::socket *socket) {
-            auto c = std::shared_ptr<connection>(new connection(socket));
-            c->connected();
-        }
-};
-class acceptor: public asio::reactor::kcp::acceptor, public asio::reactor::timer {
-    public:
-        acceptor(simple::reactor::mgr *mgr): asio::reactor::kcp::acceptor(mgr), asio::reactor::timer(mgr){
-            asio::reactor::timer::relay(1.f, true);
-        }
-    private:
-        void on_connected(simple::reactor::socket *socket) {
-            c_ = std::shared_ptr<connection>(new connection(socket));
-            c_->connected();
-        }
-
-    private:
         void on_time() {
-            auto packet = c_->get_packet_writer();
+            auto packet = get_packet_writer();
             packet << 1;
-            c_->send(packet);
+            send(packet);
         }
-
-    private:
-        std::shared_ptr<connection> c_;
 };
 
-*/
 
 class acceptor: public asio::reactor::udp::acceptor {
     public:
@@ -67,23 +43,9 @@ class acceptor: public asio::reactor::udp::acceptor {
         }
     private:
         void on_connected(simple::reactor::socket *socket) {
-            auto client = std::shared_ptr<connection>(new connection(socket));
-            clients_.insert(client);
+            auto client = std::shared_ptr<connection>(new connection(socket, get_mgr()));
             client->connected();
         }
-
-    private:
-        void on_time() {
-            for (auto it = clients_.begin(); it != clients_.end(); ++it) {
-                auto client = *it;
-                auto packet = client->get_packet_writer();
-                packet << 1;
-                client->send(packet);
-            }
-        }
-
-    private:
-        std::set<std::shared_ptr<connection>> clients_;
 };
 
 int main() {
