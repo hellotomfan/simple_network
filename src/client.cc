@@ -23,13 +23,14 @@ class connector: public asio::reactor::udp::connector, public asio::reactor::tim
         } 
         void on_connected() {
             //std::cout << __PRETTY_FUNCTION__ << std::endl; //asio::reactor::timer::relay(1.f, true);
+            asio::reactor::timer::relay(1.f, true);
         }
         void on_disconnected() {
-            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            //std::cout << __PRETTY_FUNCTION__ << std::endl;
             asio::reactor::timer::relay(1.f, true);
         }
         void on_time() {
-            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            //std::cout << __PRETTY_FUNCTION__ << std::endl;
             if (is_disconnected()) {
                 connect();
             }
@@ -44,29 +45,9 @@ class connector: public asio::reactor::udp::connector, public asio::reactor::tim
         int i = 0;
 };
 
-class test: public asio::reactor::timer {
-    public:
-        test(simple::reactor::mgr* mgr): timer(mgr) {
-        }
-    public:
-        void do_test() {
-            asio::reactor::timer::relay(1.f, false);
-        }
-        void on_time() {
-            asio::reactor::timer::relay(1.f, true);
-            std::cout << __PRETTY_FUNCTION__ << std::endl;
-        }
-};
-
 
 int main() {
     auto &mgr = asio::reactor::mgr::get_instance();
-    std::shared_ptr<test> t = std::shared_ptr<test>(new test(&mgr));
-    t->do_test();
-    mgr.run();
-
-    /*
     mgr.connect<connector>("127.0.0.1", 11111);
     mgr.run();
-    */
 }

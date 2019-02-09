@@ -18,9 +18,6 @@ class acceptor: public simple::reactor::mgr::acceptor {
             simple::reactor::mgr::acceptor(m),
             socket_(static_cast<mgr*>(m)->io_service_) {
         }
-        ~acceptor() {
-            std::cout << __PRETTY_FUNCTION__ << std::endl;
-        }
 
     public:
         void listen(const char *host, uint16 port) {

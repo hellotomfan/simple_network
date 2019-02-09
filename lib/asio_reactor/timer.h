@@ -31,10 +31,13 @@ namespace asio::reactor {
 
             void do_time(uint32 milliseconds, bool repeat) {
                 auto self = this->shared_from_this();
+                timer_.cancel();
                 timer_.async_wait([this, milliseconds, repeat, self] (std::error_code ec) {
+                    if (!ec) {
                         timer_.expires_at(timer_.expires_at() + std::chrono::milliseconds(milliseconds));
                         on_time();
                         if (repeat) do_time(milliseconds, repeat);
+                    }
                 });
             }
 

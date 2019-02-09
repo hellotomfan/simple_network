@@ -16,10 +16,6 @@ class socket: public simple::reactor::socket {
         }
         socket(asio::ip::udp::socket& socket, const std::shared_ptr<asio::ip::udp::endpoint>& endpoint): socket_(std::move(socket)), endpoint_(endpoint) {
         }
-        ~socket() {
-            std::cout << __PRETTY_FUNCTION__ << std::endl;
-        }
-
     public:
         void open() {
             do_read();
