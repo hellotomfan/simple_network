@@ -39,8 +39,8 @@ class acceptor: public simple::reactor::mgr::acceptor {
                 if (!ec) {
                     socket_.non_blocking(true);
                     on_connected(new tcp::socket(socket_));
+                    do_accept();
                 }
-                do_accept();
             });
         }
 

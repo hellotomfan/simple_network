@@ -73,8 +73,8 @@ class acceptor: public simple::reactor::mgr::acceptor {
                             on_connected(new udp::socket(socket, remote_endpoint));
                         }
                     }
+                    do_accept();
                 }
-                do_accept();
             });
         }
 

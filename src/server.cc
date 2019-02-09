@@ -17,7 +17,7 @@ class connection: public simple::reactor::connection, public asio::reactor::time
 
     public:
         void on_connected() {
-            //asio::reactor::timer::relay(0.01f, true);
+            asio::reactor::timer::relay(0.01f, true);
         }
     private:
         void on_recv(simple::reactor::packet::reader& packet) {
@@ -37,9 +37,9 @@ class connection: public simple::reactor::connection, public asio::reactor::time
 };
 
 
-class acceptor: public asio::reactor::tcp::acceptor {
+class acceptor: public asio::reactor::udp::acceptor {
     public:
-        acceptor(simple::reactor::mgr *mgr): asio::reactor::tcp::acceptor(mgr) {
+        acceptor(simple::reactor::mgr *mgr): asio::reactor::udp::acceptor(mgr) {
         }
     private:
         void on_connected(simple::reactor::socket *socket) {
