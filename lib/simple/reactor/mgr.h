@@ -22,10 +22,16 @@ namespace simple::reactor {
             };
 
         public:
-            class acceptor: public event::base {
+            class acceptor: public event::io {
                 public:
                     acceptor(simple::reactor::mgr *m): m_(m) {
                     }
+
+                private:
+                    void on_read() {}
+                    void on_write() {}
+                    void on_close() {}
+
                 public:
                     virtual void listen(const char *host, uint16 port) = 0;
 

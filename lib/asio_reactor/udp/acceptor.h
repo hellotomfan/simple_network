@@ -54,7 +54,7 @@ class acceptor: public simple::reactor::mgr::acceptor {
         }
 
     private:
-        void do_accept() {
+        virtual void do_accept() {
             auto self = this->shared_from_this();
             socket_.async_receive_from(asio::buffer(buffer_, sizeof(buffer_)), remote_endpoint_, [this, self](std::error_code ec, size_t n) {
                 if (!ec) {
@@ -78,17 +78,17 @@ class acceptor: public simple::reactor::mgr::acceptor {
             });
         }
 
-    private:
-        uint8 buffer_[1];
+    protected:
+        uint8 buffer_[65535];
 
-    private:
+    protected:
         asio::ip::udp::endpoint endpoint_;
         asio::ip::udp::endpoint remote_endpoint_;
 
-    private:
+    protected:
         std::vector<asio::ip::udp::endpoint*> remote_endpoints_;
 
-    private:
+    protected:
         asio::ip::udp::socket socket_;
 };
 }

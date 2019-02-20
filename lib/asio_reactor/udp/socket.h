@@ -7,10 +7,15 @@
 
 #include <asio.hpp>
 
+namespace asio::reactor::kcp {
+    class connector;
+}
+
 namespace asio::reactor::udp {
 
 class socket: public simple::reactor::socket {
-    friend class connector;
+    friend class udp::connector;
+    friend class kcp::connector;
     public:
         socket(asio::io_service& io_service): socket_(io_service) {
         }
@@ -64,10 +69,10 @@ class socket: public simple::reactor::socket {
             }
         }
 
-    private:
+    protected:
         asio::ip::udp::socket socket_;
 
-    private:
+    protected:
         std::shared_ptr<asio::ip::udp::endpoint> endpoint_;
 
 };

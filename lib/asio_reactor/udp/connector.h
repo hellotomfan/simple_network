@@ -13,12 +13,9 @@ class connector: public simple::reactor::mgr::connector {
     public:
         connector(simple::reactor::mgr* m): connector(static_cast<mgr*>(m)->io_service_) {
         }
-        connector(asio::io_service& io_service): simple::reactor::mgr::connector(new socket(io_service)) {
+        connector(asio::io_service& io_service): connector(new socket(io_service)) {
         }
-
-    private:
-        socket* get_socket() {
-            return static_cast<socket*>(socket_);
+        connector(socket *socket): simple::reactor::mgr::connector(socket) {
         }
 
     public:
@@ -29,9 +26,7 @@ class connector: public simple::reactor::mgr::connector {
 
     public:
         void connect() {
-
             get_socket()->close();
-            auto self = shared_from_this();
 
             get_socket()->socket_.open(asio::ip::udp::v4());
             get_socket()->socket_.non_blocking(true);
@@ -39,18 +34,23 @@ class connector: public simple::reactor::mgr::connector {
             get_socket()->socket_.bind(asio::ip::udp::endpoint());
 
             connecting();
-            get_socket()->socket_.async_connect(remote_endpoint_, [this, self] (std::error_code ec) {
-                if (ec)
+            std::error_code ec;
+            get_socket()->socket_.connect(remote_endpoint_, ec);
+            if (ec)
+                disconnect();
+            else {
+                uint32 conv = 0;
+                get_socket()->socket_.send(asio::buffer(&conv, sizeof(conv)), 0, ec);
+                if (!ec)
+                    connected();
+                else
                     disconnect();
-                else {
-                    char c = 0;
-                    get_socket()->socket_.send(asio::buffer(&c, sizeof(c)), 0, ec);
-                    if (!ec)
-                        connected();
-                    else
-                        disconnect();
-                }
-            });
+            }
+        }
+
+    protected:
+        socket* get_socket() {
+            return static_cast<socket*>(socket_);
         }
 
     private:
