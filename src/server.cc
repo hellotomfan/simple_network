@@ -51,6 +51,11 @@ class acceptor: public asio::reactor::kcp::acceptor {
 };
 
 int main() {
+    /*
+    auto mgr = std::shared_ptr<asio::reactor::mgr>(new asio::reactor::mgr);
+    mgr->listen<acceptor>("127.0.0.1", 11111);
+    mgr->run();
+    */
     auto &mgr = asio::reactor::mgr::get_instance();
     mgr.listen<acceptor>("127.0.0.1", 11111);
     mgr.run();

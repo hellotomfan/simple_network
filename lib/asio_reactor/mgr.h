@@ -1,9 +1,12 @@
 #ifndef LIB_ASIO_NETWORK_MGR_H
 #define LIB_ASIO_NETWORK_MGR_H
 
+
 #include "timer/base.h"
 
+
 #include "../simple/reactor/mgr.h"
+#include "../simple/reactor/event.h"
 
 #include <asio.hpp>
 
@@ -46,8 +49,7 @@ class mgr: public simple::reactor::mgr {
 
     class timer: public asio::reactor::timer::base {
         public:
-            timer(mgr *m): base(m->io_service_) {
-
+            timer(mgr *m): base(m->io_service_), mgr_(m) {
             }
 
         public:
@@ -57,7 +59,7 @@ class mgr: public simple::reactor::mgr {
 
         private:
             void on_time(uint32 current) {
-                mgr_->update();
+                mgr_->on_time(current);
             }
         public:
             mgr *mgr_;
@@ -67,23 +69,34 @@ class mgr: public simple::reactor::mgr {
         mgr(): timer_(new timer(this)) {
 
         }
+        ~mgr() {
+            timer_.reset();
+            timers_.clear();
+        }
 
 
     public:
         void run() {
             signal(SIGINT, [](int) {
-                    mgr::get_instance().stop();
+                mgr::get_instance().stop();
             });
-            timer_->delay(1.f, true);
+            timer_->delay(0.02f, true);
             io_service_.run();
         }
 
         void stop() {
             io_service_.stop();
         }
+        bool stopped() {
+            return io_service_.stopped();
+        }
 
-        void update() {
-            std::cout << __PRETTY_FUNCTION__ << std::endl;
+        void on_time(uint32 current) {
+            auto it = timers_.begin();
+            while (it != timers_.end()) {
+                auto i = it++;
+                (*i)->on_time(current);
+            }
         }
 
     public:
@@ -93,10 +106,24 @@ class mgr: public simple::reactor::mgr {
         }
 
     private:
+        void add(simple::reactor::event::timer *timer) {
+            timers_.insert(timer);
+        }
+
+        void remove(simple::reactor::event::timer *timer) {
+            timers_.erase(timer);
+        }
+
+
+    protected:
+        std::unordered_set<simple::reactor::event::timer *> timers_;
+
+    private:
         asio::io_service io_service_;
 
     private:
         std::shared_ptr<timer> timer_;
+
 };
 
 }

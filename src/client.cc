@@ -16,9 +16,9 @@
 #include <iostream>
 #include <string.h>
 
-class connector: public asio::reactor::kcp::connector, public asio::reactor::timer::timer  {
+class connector: public asio::reactor::kcp::connector {
     public:
-        connector(simple::reactor::mgr* mgr): asio::reactor::kcp::connector(mgr), asio::reactor::timer::timer(mgr) {
+        connector(simple::reactor::mgr* mgr): asio::reactor::kcp::connector(mgr) {
         }
     private:
         void on_recv(simple::reactor::packet::reader& packet) {
@@ -26,14 +26,12 @@ class connector: public asio::reactor::kcp::connector, public asio::reactor::tim
         } 
         void on_connected() {
             std::cout << __PRETTY_FUNCTION__ << std::endl; //asio::reactor::timer::relay(1.f, true);
-            asio::reactor::timer::timer::delay(0.01f, true);
         }
         void on_disconnected() {
             std::cout << __PRETTY_FUNCTION__ << std::endl;
-            asio::reactor::timer::timer::delay(1.f);
         }
         void on_time(uint32 ms) {
-            update(ms);
+            asio::reactor::kcp::connector::on_time(ms);
             //std::cout << __PRETTY_FUNCTION__ << std::endl;
             if (is_disconnected()) {
                 connect();
@@ -48,6 +46,18 @@ class connector: public asio::reactor::kcp::connector, public asio::reactor::tim
 
     private:
         int i = 0;
+};
+
+class timer: public asio::reactor::timer::timer {
+    public:
+        timer(asio::reactor::mgr *mgr): asio::reactor::timer::timer(mgr) {
+            delay(0.1f);
+        }
+
+    private:
+        void on_time(uint32) {
+        }
+
 };
 
 int main() {

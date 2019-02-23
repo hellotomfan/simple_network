@@ -13,17 +13,26 @@
 
 namespace asio::reactor::kcp {
 
-class connector: public udp::connector {
+class connector: public udp::connector, public simple::reactor::event::timer {
+
     public:
-        connector(simple::reactor::mgr* m): connector(static_cast<mgr*>(m)->io_service_)  {
+        connector(simple::reactor::mgr* m): connector(static_cast<mgr*>(m)->io_service_) {
+            mgr_ = static_cast<mgr*>(m);
+            mgr_->add(this);
         }
         connector(asio::io_service& io_service): udp::connector(new socket(io_service)) {
         }
-
-    public:
-        void update(uint32 ms) {
-            static_cast<socket*>(get_socket())->update(ms);
+        ~connector() {
+            mgr_->remove(this);
         }
+
+    protected:
+        void on_time(uint32 current) {
+            static_cast<socket*>(get_socket())->update(current);
+        }
+
+    private:
+        mgr *mgr_;
 
 };
 

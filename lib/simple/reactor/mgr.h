@@ -10,7 +10,7 @@
 
 namespace simple::reactor {
 
-    class mgr {
+    class mgr: public std::enable_shared_from_this<mgr> {
 
         public:
             class connector: public connection {
@@ -22,15 +22,10 @@ namespace simple::reactor {
             };
 
         public:
-            class acceptor: public event::io {
+            class acceptor: public virtual event::base {
                 public:
                     acceptor(simple::reactor::mgr *m): m_(m) {
                     }
-
-                private:
-                    void on_read() {}
-                    void on_write() {}
-                    void on_close() {}
 
                 public:
                     virtual void listen(const char *host, uint16 port) = 0;
@@ -58,9 +53,6 @@ namespace simple::reactor {
         public:
             virtual void run() = 0;
             virtual void stop() = 0;
-
-        protected:
-            std::unordered_set<std::shared_ptr<event::base>> events_;
 
     };
 };

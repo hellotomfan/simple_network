@@ -1,6 +1,7 @@
 #ifndef LIB_ASIO_REACTOR_KCP_CONNECTION_H
 #define LIB_ASIO_REACTOR_KCP_CONNECTION_H
 
+#include "socket.h"
 
 #include "../../simple/reactor/connection.h"
 

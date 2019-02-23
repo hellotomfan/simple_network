@@ -63,8 +63,10 @@ class socket: public udp::socket {
         void close() {
             socket_.close();
             io_->on_close();
-            ikcp_release(kcp_);
-            kcp_ = nullptr;
+            if (kcp_) {
+                ikcp_release(kcp_);
+                kcp_ = nullptr;
+            }
         }
 
     private:

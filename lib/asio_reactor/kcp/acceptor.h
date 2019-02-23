@@ -15,36 +15,24 @@
 
 namespace asio::reactor::kcp {
 
-class acceptor: public udp::acceptor, public asio::reactor::timer::timer {
+class acceptor: public udp::acceptor, public simple::reactor::event::timer {
 
     public:
-        acceptor(simple::reactor::mgr *m): udp::acceptor(m), asio::reactor::timer::timer(m) {
+        acceptor(simple::reactor::mgr *m): udp::acceptor(m) {
+            asio::reactor::mgr::get_instance().add(this);
         }
-
-    public:
-        void on_time(uint32 elapse_ms) {
-            //std::cout << elapse_ms << std::endl;
-            auto it = convs_.begin();
-            while (it != convs_.end()) {
-                auto i = it ++;
-                i->second->update(elapse_ms);
-            }
+        ~acceptor() {
+            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            asio::reactor::mgr::get_instance().remove(this);
         }
 
     public:
         void listen(const char *host, uint16 port) {
             udp::acceptor::listen(host, port);
-            asio::reactor::timer::timer::delay(0.01f, true);
             do_accept();
         }
 
-    public:
-        void close(uint32 conv, const asio::ip::udp::endpoint& remote_endpoint) {
-            convs_.erase(conv);
-            udp::acceptor::close(remote_endpoint);
-        }
-
-    public:
+    private:
         void do_accept() {
             auto self = this->shared_from_this();
             socket_.async_receive_from(asio::buffer(buffer_, sizeof(buffer_)), remote_endpoint_, [this, self](std::error_code ec, size_t n) {
@@ -78,7 +66,22 @@ class acceptor: public udp::acceptor, public asio::reactor::timer::timer {
 
         }
 
-    public:
+    private:
+        void on_time(uint32 current) {
+            auto it = convs_.begin();
+            while (it != convs_.end()) {
+                auto i = it ++;
+                i->second->update(current);
+            }
+        }
+
+    private:
+        void close(uint32 conv, const asio::ip::udp::endpoint& remote_endpoint) {
+            convs_.erase(conv);
+            udp::acceptor::close(remote_endpoint);
+        }
+
+    private:
         uint32 get_conv() {
             static uint32 conv = 0;
             conv = ++conv ? conv : 1;
@@ -89,6 +92,7 @@ class acceptor: public udp::acceptor, public asio::reactor::timer::timer {
 
     private:
         std::unordered_map<uint32, kcp::socket*> convs_;
+
 };
 }
 
