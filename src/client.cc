@@ -40,7 +40,7 @@ class connector: public asio::reactor::kcp::connector {
                 //std::cout << "send" << std::endl;
                 auto packet = get_packet_writer();
                 packet << i++;
-                asio::reactor::udp::connector::send(packet);
+                send(packet);
             }
         }
 

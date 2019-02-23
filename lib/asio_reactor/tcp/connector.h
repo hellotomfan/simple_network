@@ -8,11 +8,11 @@
 
 namespace asio::reactor::tcp {
 
-class connector: public simple::reactor::mgr::connector {
+class connector: public simple::reactor::mgr::connector<> {
     public:
         connector(simple::reactor::mgr* m): connector(static_cast<mgr*>(m)->io_service_) {
         }
-        connector(asio::io_service& io_service): simple::reactor::mgr::connector(new socket(io_service)) {
+        connector(asio::io_service& io_service): simple::reactor::mgr::connector<>(new socket(io_service)) {
         }
 
     private:

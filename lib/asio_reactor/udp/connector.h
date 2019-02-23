@@ -9,13 +9,13 @@
 
 namespace asio::reactor::udp {
 
-class connector: public simple::reactor::mgr::connector {
+class connector: public simple::reactor::mgr::connector<> {
     public:
         connector(simple::reactor::mgr* m): connector(static_cast<mgr*>(m)->io_service_) {
         }
         connector(asio::io_service& io_service): connector(new socket(io_service)) {
         }
-        connector(socket *socket): simple::reactor::mgr::connector(socket) {
+        connector(socket *socket): simple::reactor::mgr::connector<>(socket) {
         }
 
     public:

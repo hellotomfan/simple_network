@@ -13,9 +13,10 @@ namespace simple::reactor {
     class mgr: public std::enable_shared_from_this<mgr> {
 
         public:
-            class connector: public connection {
+            template<class connection_type = connection>
+            class connector: public connection_type {
                 public:
-                    connector(socket *socket): connection(socket) {
+                    connector(socket *socket): connection_type(socket) {
                     }
                 public:
                     virtual void connect(const char *host, uint16 port) = 0;

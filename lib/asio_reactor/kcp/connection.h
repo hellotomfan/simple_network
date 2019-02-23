@@ -3,6 +3,7 @@
 
 #include "socket.h"
 
+#include "../../simple/reactor/socket.h"
 #include "../../simple/reactor/connection.h"
 
 
@@ -10,19 +11,9 @@ namespace asio::reactor::kcp {
 
 class connection: public simple::reactor::connection {
     public:
-        connection(socket *socket): simple::reactor::connection(socket) {
+        connection(simple::reactor::socket *socket): simple::reactor::connection(socket) {
+            std::cout << __PRETTY_FUNCTION__ << std::endl;
         }
-
-    public:
-        void update() {
-
-        }
-
-    private:
-        void on_read() {
-            //TODO
-        }
-
 
 };
 
